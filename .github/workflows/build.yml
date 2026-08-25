@@ -1383,10 +1383,16 @@ jobs:
               if [ -s "$FRAG" ]; then
                 FRAG_FLAG="--defconfig_fragment=//common:arch/arm64/configs/ksu.fragment"
               fi
-              LTO_FLAG="--lto=thin"
-              if [ "${{ inputs.kernel_version }}" = "6.12" ]; then
-                LTO_FLAG="--lto=none"
-              fi
+              # Build with LTO disabled to match the kernel this Xiaomi Pad 7
+              # (uke) actually runs: its config has CONFIG_LTO_NONE=y together
+              # with strict CONFIG_CFI_CLANG=y. A thin-LTO build of the very
+              # same source failed to boot on the device -- with CFI strict,
+              # LTO changes indirect-call type checking, and the prebuilt Xiaomi
+              # vendor modules were compiled against a non-LTO kernel. Result
+              # was an early panic and a bootloader fallback to fastboot.
+              # LTO_NONE is the only config difference between the working
+              # stock kernel and the failed build, so keep it none here.
+              LTO_FLAG="--lto=none"
               tools/bazel build --disk_cache=/home/runner/.cache/bazel --config=fast $LTO_FLAG $FRAG_FLAG //common:kernel_aarch64_dist || exit 1
               strings ./bazel-bin/common/kernel_aarch64/Image | grep 'Linux version'
             fi
