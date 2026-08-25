@@ -921,10 +921,12 @@ jobs:
           # Docker on Debian userland (Xiaomi Pad 7 / uke):
           # USER_NS fixes dockerd's "unsafe procfs" error; CGROUP_PIDS gives the
           # pids cgroup controller that runc uses for container process limits.
+          # NOTE: do NOT add CONFIG_TMPFS_XATTR / CONFIG_TMPFS_POSIX_ACL here --
+          # they are already set later in this workflow, and adding them again
+          # duplicates them in the bazel fragment, which fails the strict config
+          # check with "override: reassigning to symbol TMPFS_XATTR".
           enable_config_if_defined CONFIG_USER_NS
           enable_config_if_defined CONFIG_CGROUP_PIDS
-          enable_config_if_defined CONFIG_TMPFS_POSIX_ACL
-          enable_config_if_defined CONFIG_TMPFS_XATTR
 
           # 可选: 网络相关配置 (Docker/NAT 模式)
           enable_config_if_defined CONFIG_NETFILTER_XT_MATCH_ADDRTYPE
